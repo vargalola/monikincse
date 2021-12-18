@@ -1,0 +1,102 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+		<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script> 
+		<style>
+			html, body {
+				height: 100%;
+				margin: 0;
+			}
+			#map {
+				width: 100%; height: 100%;
+			}
+			#resetbutton {
+				position: absolute;
+				top: 10px; right: 10px;
+				z-index: 10000;
+			}
+			.posicon {
+				width: 10px; height: 10px;
+				border: solid 3px blue;
+				border-radius: 8px;
+				background: rgba(50,50,255,0.5);
+				box-shadow: 0 0 5px 3px rgba(0,0,0,.5);
+			}
+		</style>
+	</head>
+	<body>
+		<div id="map"></div>
+		<input type="button" id="resetbutton" value="Reset" onclick="reset()" />
+		<script>
+			let helyek=[[47.505577, 19.062964],
+						[47.514719, 19.04348],
+						[47.522016, 19.046704]];
+						
+			const minDist=15;
+						
+			function getCookie(cname) {
+				let name = cname + "=";
+				let decodedCookie = decodeURIComponent(document.cookie);
+				let ca = decodedCookie.split(';');
+				for(let i = 0; i <ca.length; i++) {
+					let c = ca[i];
+					while (c.charAt(0) == ' ')
+						c = c.substring(1);
+					if (c.indexOf(name) == 0) 
+						return c.substring(name.length, c.length);
+				}
+				return "";
+			}
+			
+			const posIcon = L.divIcon({className: 'leaflet-div-icon posicon'});
+			
+			const map=L.map('map').setView([47.5,19.05],14);
+			
+			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+				attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+			}).addTo(map);
+			
+			let pos;
+			
+			let hol=getCookie('moniszuli_lepes');
+			if (hol=='') {
+				alert('Szia Móni!\n Induljon a kincskeresés.');
+				hol=0;
+				document.cookie='moniszuli_lepes=0';
+			}
+			hol=parseInt(hol);
+			
+			let cel=L.marker(helyek[hol]).addTo(map).bindPopup('ide kell jönnöd');
+			
+			function updatePosition(ll) {
+				if (pos)
+					pos.remove();
+				pos=L.marker(ll, { icon: posIcon }).addTo(map);
+				
+				if (ll.distanceTo(helyek[hol])<minDist) {
+					hol++;
+					if (hol==helyek.length) {
+						alert('megvan! nézz körül alaposan.');
+						//
+					}
+					else {
+						alert('megvan! jöhet a következő lépés!');
+						cel.remove();
+						cel=L.marker(helyek[hol]).addTo(map).bindPopup('ide kell jönnöd');
+						document.cookie='moniszuli_lepes='+hol;
+					}
+				}
+			}
+			
+			function reset() {
+				alert('Szia Móni!\n Induljon a kincskeresés.');
+				hol=0;
+				document.cookie='moniszuli_lepes=0';
+				cel.remove();
+				cel=L.marker(helyek[hol]).addTo(map).bindPopup('ide kell jönnöd');
+			}
+			
+			map.on('click',e=>updatePosition(e.latlng));
+		</script>
+	</body>
+</html>
