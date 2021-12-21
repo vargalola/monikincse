@@ -148,7 +148,9 @@
 			// add geolocation
 			navigator.geolocation.watchPosition(function(p) {
 				updatePosition(L.latLng(p.coords.latitude,p.coords.longitude))
-			});
+			}, function() {
+                msg('A böngésző nem fér hozzá a helyadatokhoz. Csinálj valamit :D');
+            }, {enableHighAccuracy: true});
 		</script>
 	</body>
 </html>
