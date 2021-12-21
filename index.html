@@ -1,156 +1,156 @@
 <html>
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="initial-scale=1,user-scalable=no" />
-		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-		<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script> 
-		<style>
-			html, body {
-				height: 100%;
-				margin: 0;
-			}
-			#map {
-				width: 100%; height: 100%;
-			}
-			#resetbutton {
-				position: absolute;
-				top: 10px; right: 10px;
-				z-index: 10000;
-			}
-			.posicon {
-				width: 10px; height: 10px;
-				border: solid 3px blue;
-				border-radius: 8px;
-				background: rgba(50,50,255,0.5);
-				box-shadow: 0 0 5px 3px rgba(0,0,0,.5);
-			}
-			#msgfader {
-				position: fixed;
-				top: 0; left: 0; bottom: 0; right: 0;
-				display: none;
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="initial-scale=1,user-scalable=no" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script> 
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+            }
+            #map {
+                width: 100%; height: 100%;
+            }
+            #resetbutton {
+                position: absolute;
+                top: 10px; right: 10px;
+                z-index: 10000;
+            }
+            .posicon {
+                width: 10px; height: 10px;
+                border: solid 3px blue;
+                border-radius: 8px;
+                background: rgba(50,50,255,0.5);
+                box-shadow: 0 0 5px 3px rgba(0,0,0,.5);
+            }
+            #msgfader {
+                position: fixed;
+                top: 0; left: 0; bottom: 0; right: 0;
+                display: none;
                 background: rgba(0,0,0,.5);
-				z-index: 10001;
-			}
-			#msgbox {
-				position: fixed;
-				top: 50%; left: 50%;
-				transform: translate(-50%,-50%);
-				background: #fff;
+                z-index: 10001;
+            }
+            #msgbox {
+                position: fixed;
+                top: 50%; left: 50%;
+                transform: translate(-50%,-50%);
+                background: #fff;
                 border: solid 1px blue;
                 border-radius: 10px;
                 padding: 10px;
                 box-shadow: 10px 10px 5px rgba(0,0,0,.5);
-			}
-			#msgbox input[value=OK] {
-				margin-top: 10px;
-			}
-		</style>
-	</head>
-	<body>
-		<div id="map"></div>
-		<input type="button" id="resetbutton" value="Reset" onclick="reset()" />
-		<div id="msgfader">
-			<div id="msgbox">
-				<div id="msgtext"></div>
-				<input type="button" value="OK" onclick="document.querySelector('#msgfader').style.display=''" />
-			</div>
-		</div>
-		<script>
-			let helyek=[[47.474559, 19.062958],
-						[47.473399, 19.062653],
+            }
+            #msgbox input[value=OK] {
+                margin-top: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <input type="button" id="resetbutton" value="Reset" onclick="reset()" />
+        <div id="msgfader">
+            <div id="msgbox">
+                <div id="msgtext"></div>
+                <input type="button" value="OK" onclick="document.querySelector('#msgfader').style.display=''" />
+            </div>
+        </div>
+        <script>
+            let helyek=[[47.474559, 19.062958],
+                        [47.473399, 19.062653],
                         [47.473841, 19.061049],
-						[47.474824, 19.061102]];
-						
-			const minDist=10;
-						
-			function getCookie(cname) {
-				let name = cname + "=";
-				let decodedCookie = decodeURIComponent(document.cookie);
-				let ca = decodedCookie.split(';');
-				for(let i = 0; i <ca.length; i++) {
-					let c = ca[i];
-					while (c.charAt(0) == ' ')
-						c = c.substring(1);
-					if (c.indexOf(name) == 0) 
-						return c.substring(name.length, c.length);
-				}
-				return "";
-			}
-			
-			function scaleBounds(b,sc) {
-				console.log(b);
-				let clat=(b[0].lat+b[1].lat)/2, clng=(b[0].lng+b[1].lng)/2;
-				let hs=clng-b[0].lng, ws=clat-b[0].lat;
-				hs*=sc; ws*=sc;
-				console.log(hs,ws,clat,clng)
-				return [L.latLng(clat-ws,clng-hs),L.latLng(clat+ws,clng+hs)];
-			}
-			
-			const posIcon = L.divIcon({className: 'leaflet-div-icon posicon'});
-			
-			const map=L.map('map').setView([47.5,19.05],14);
-			
-			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-				attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-			}).addTo(map);
-			
-			let pos;
-			
-			let hol=getCookie('moniszuli_lepes');
-			if (hol=='') {
-				msg('Szia Móni!<br/>Induljon a kincskeresés.');
-				hol=0;
-				document.cookie='moniszuli_lepes=0';
-			}
-			hol=parseInt(hol);
-			
-			let cel=L.marker(helyek[hol]).addTo(map).bindPopup('ide kell jönnöd').openPopup();
-			
-			function updatePosition(ll) {
-				if (pos)
-					pos.remove();
-				pos=L.marker(ll, { icon: posIcon }).addTo(map);
-				map.fitBounds(scaleBounds([ll,L.latLng(helyek[hol])],1.1));
-				
-				if (ll.distanceTo(helyek[hol])<minDist) {
-					hol++;
-					if (hol==helyek.length) {
-						msg('Megvan!<br/>Nézz körül alaposan.');
-						//
-					}
-					else {
-						msg('Megvan!<br/>Jöhet a következő lépés!');
-						cel.remove();
-						cel=L.marker(helyek[hol]).addTo(map).bindPopup('ide kell jönnöd').openPopup();
-						map.fitBounds(scaleBounds([ll,L.latLng(helyek[hol])],1.1));
-						document.cookie='moniszuli_lepes='+hol;
-					}
-				}
-			}
-			
-			function reset() {
-				msg('Szia Móni!<br/>Induljon a kincskeresés.');
-				hol=0;
-				document.cookie='moniszuli_lepes=0';
-				cel.remove();
-				cel=L.marker(helyek[hol]).addTo(map).bindPopup('ide kell jönnöd');
-			}
-			
-			function msg(t) {
-				document.querySelector('#msgfader').style.display='block';
-				document.querySelector('#msgtext').innerHTML=t;
-			}
-			
-			// for indoor testing click instead of geolocation
-			//map.on('click',e=>updatePosition(e.latlng));
-			//map.on('click',e=>alert(e.latlng));
+                        [47.474824, 19.061102]];
+                        
+            const minDist=10;
+                        
+            function getCookie(cname) {
+                let name = cname + "=";
+                let decodedCookie = decodeURIComponent(document.cookie);
+                let ca = decodedCookie.split(';');
+                for(let i = 0; i <ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) == ' ')
+                        c = c.substring(1);
+                    if (c.indexOf(name) == 0) 
+                        return c.substring(name.length, c.length);
+                }
+                return "";
+            }
             
-			// add geolocation
-			navigator.geolocation.watchPosition(function(p) {
-				updatePosition(L.latLng(p.coords.latitude,p.coords.longitude))
-			}, function() {
+            function scaleBounds(b,sc) {
+                console.log(b);
+                let clat=(b[0].lat+b[1].lat)/2, clng=(b[0].lng+b[1].lng)/2;
+                let hs=clng-b[0].lng, ws=clat-b[0].lat;
+                hs*=sc; ws*=sc;
+                console.log(hs,ws,clat,clng)
+                return [L.latLng(clat-ws,clng-hs),L.latLng(clat+ws,clng+hs)];
+            }
+            
+            const posIcon = L.divIcon({className: 'leaflet-div-icon posicon'});
+            
+            const map=L.map('map').setView([47.5,19.05],14);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            let pos;
+            
+            let hol=getCookie('moniszuli_lepes');
+            if (hol=='') {
+                msg('Szia Móni!<br/>Induljon a kincskeresés.');
+                hol=0;
+                document.cookie='moniszuli_lepes=0';
+            }
+            hol=parseInt(hol);
+            
+            let cel=L.marker(helyek[hol]).addTo(map).bindPopup('ide kell jönnöd').openPopup();
+            
+            function updatePosition(ll) {
+                if (pos)
+                    pos.remove();
+                pos=L.marker(ll, { icon: posIcon }).addTo(map);
+                map.fitBounds(scaleBounds([ll,L.latLng(helyek[hol])],1.1));
+                
+                if (ll.distanceTo(helyek[hol])<minDist) {
+                    hol++;
+                    if (hol==helyek.length) {
+                        msg('Megvan!<br/>Nézz körül alaposan.');
+                        //
+                    }
+                    else {
+                        msg('Megvan!<br/>Jöhet a következő lépés!');
+                        cel.remove();
+                        cel=L.marker(helyek[hol]).addTo(map).bindPopup('ide kell jönnöd').openPopup();
+                        map.fitBounds(scaleBounds([ll,L.latLng(helyek[hol])],1.1));
+                        document.cookie='moniszuli_lepes='+hol;
+                    }
+                }
+            }
+            
+            function reset() {
+                msg('Szia Móni!<br/>Induljon a kincskeresés.');
+                hol=0;
+                document.cookie='moniszuli_lepes=0';
+                cel.remove();
+                cel=L.marker(helyek[hol]).addTo(map).bindPopup('ide kell jönnöd');
+            }
+            
+            function msg(t) {
+                document.querySelector('#msgfader').style.display='block';
+                document.querySelector('#msgtext').innerHTML=t;
+            }
+            
+            // for indoor testing click instead of geolocation
+            //map.on('click',e=>updatePosition(e.latlng));
+            //map.on('click',e=>alert(e.latlng));
+            
+            // add geolocation
+            navigator.geolocation.watchPosition(function(p) {
+                updatePosition(L.latLng(p.coords.latitude,p.coords.longitude))
+            }, function() {
                 msg('A böngésző nem fér hozzá a helyadatokhoz. Csinálj valamit :D');
             }, {enableHighAccuracy: true});
-		</script>
-	</body>
+        </script>
+    </body>
 </html>
