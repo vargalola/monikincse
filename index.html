@@ -56,9 +56,10 @@
 			</div>
 		</div>
 		<script>
-			let helyek=[[47.505577, 19.062964],
-						[47.514719, 19.04348],
-						[47.522016, 19.046704]];
+			let helyek=[[47.474559, 19.062958],
+						[47.473399, 19.062653],
+                        [47.473841, 19.061049],
+						[47.474824, 19.061102]];
 						
 			const minDist=10;
 						
@@ -103,7 +104,7 @@
 			}
 			hol=parseInt(hol);
 			
-			let cel=L.marker(helyek[hol]).addTo(map).bindPopup('ide kell jönnöd');
+			let cel=L.marker(helyek[hol]).addTo(map).bindPopup('ide kell jönnöd').openPopup();
 			
 			function updatePosition(ll) {
 				if (pos)
@@ -120,7 +121,7 @@
 					else {
 						msg('Megvan!<br/>Jöhet a következő lépés!');
 						cel.remove();
-						cel=L.marker(helyek[hol]).addTo(map).bindPopup('ide kell jönnöd');
+						cel=L.marker(helyek[hol]).addTo(map).bindPopup('ide kell jönnöd').openPopup();
 						map.fitBounds(scaleBounds([ll,L.latLng(helyek[hol])],1.1));
 						document.cookie='moniszuli_lepes='+hol;
 					}
@@ -141,12 +142,13 @@
 			}
 			
 			// for indoor testing click instead of geolocation
-			map.on('click',e=>updatePosition(e.latlng));
-			
+			//map.on('click',e=>updatePosition(e.latlng));
+			//map.on('click',e=>alert(e.latlng));
+            
 			// add geolocation
-			/*navigator.geolocation.watchPosition(p=>{
+			navigator.geolocation.watchPosition(function(p) {
 				updatePosition(L.latLng(p.coords.latitude,p.coords.longitude))
-			});*/
+			});
 		</script>
 	</body>
 </html>
