@@ -56,9 +56,10 @@
             </div>
         </div>
         <script>
-            let helyek=[[47.503920, 19.063342],
-                        [47.502977, 19.064373],
-                        [47.502760, 19.064258]];
+            let helyek=[[47.504425, 19.062374],
+                        [47.497873, 19.054034],
+                        [47.499213, 19.058184]
+                       [47.503870, 19.063415]];
                         
             const minDist=10;
                         
@@ -114,7 +115,7 @@
                 if (ll.distanceTo(helyek[hol])<minDist) {
                     hol++;
                     if (hol==helyek.length) {
-                        msg('Megvan!<br/>Nézz körül alaposan.');
+                        msg('Megvan!<br/>Menj be az udvarba és nézz körül alaposan, inkább fent mint lent ;)');
                         //
                     }
                     else {
